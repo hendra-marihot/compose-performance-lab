@@ -14,10 +14,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-// GOOD: derivedStateOf wraps the boolean computation. The resulting State<Boolean>
-// only emits a new value when the computed result actually changes (true → false or
-// false → true). Composables that read `isAtTop` only recompose on those two transitions
-// instead of on every scroll frame.
+// GOOD: derivedStateOf wraps the boolean computation. The resulting State<Boolean> only emits a
+// new value when the computed result actually changes (true → false or false → true). The
+// lambda passed to StatusHeader reads that derived value, so StatusHeader recomposes only on
+// those two transitions — not on every item-index change.
 @Composable
 fun WithDerivedState(modifier: Modifier = Modifier) {
     val scrollState = rememberLazyListState()
@@ -30,7 +30,7 @@ fun WithDerivedState(modifier: Modifier = Modifier) {
 
     Column(modifier = modifier.fillMaxSize()) {
         StatusHeader(
-            isAtTop = isAtTop,
+            isAtTop = { isAtTop },
             isOptimized = true,
             modifier = Modifier.fillMaxWidth(),
         )

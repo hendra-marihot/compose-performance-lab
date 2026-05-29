@@ -68,16 +68,16 @@ private val samples = listOf(
     ),
     SampleEntry(
         title = "derivedStateOf",
-        description = "Reading scroll state directly inside a composable triggers recomposition on every frame.",
+        description = "Reading scroll state directly recomposes the reader on every item-index change.",
         antiPattern = "val isAtTop = scrollState.firstVisibleItemIndex == 0",
         fix = "val isAtTop by remember { derivedStateOf { ... } }",
         route = DerivedStateRoute,
     ),
     SampleEntry(
         title = "Lambda Allocation",
-        description = "Inline lambdas passed to child composables are new instances on each recomposition.",
-        antiPattern = "Button(onClick = { doSomething(value) })",
-        fix = "val onClick = remember(value) { { doSomething(value) } }",
+        description = "Strong Skipping auto-memoizes lambdas, so inline and remembered now skip equally.",
+        antiPattern = "onClick = { selectedIndex = i }  (inline)",
+        fix = "remember(i) { { selectedIndex = i } }  (now redundant)",
         route = LambdaRoute,
     ),
 )

@@ -1,8 +1,11 @@
 package com.hendramarihot.composeperf.samples.lambda
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.test.assertAll
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import org.junit.Rule
@@ -26,36 +29,43 @@ class LambdaScreenTest {
         composeTestRule.onNodeWithText("Remembered").assertIsDisplayed()
     }
 
+    // Honest contract under Strong Skipping: the compiler auto-memoizes the inline lambda, so a
+    // parent recomposition does NOT recompose the children — every counter stays at 1, the same
+    // as the explicitly-remembered tab. (Before Strong Skipping the inline children would climb.)
     @Test
-    fun tabNavigationSwitchesBetweenDemos() {
-        composeTestRule.setContent {
-            MaterialTheme {
-                LambdaScreen(onBack = {})
-            }
-        }
-
-        composeTestRule.onNodeWithText("Trigger parent recomposition").assertIsDisplayed()
-
-        composeTestRule.onNodeWithText("Remembered").performClick()
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Trigger parent recomposition").assertIsDisplayed()
-    }
-
-    @Test
-    fun unrememberedDemoTriggerButtonWorks() {
+    fun parentRecompositionDoesNotRecomposeInlineLambdaChildren() {
         composeTestRule.setContent {
             MaterialTheme {
                 UnrememberedLambdaDemo()
             }
         }
 
-        composeTestRule.onNodeWithText("Parent recompositions: 0").assertIsDisplayed()
-
-        composeTestRule.onNodeWithText("Trigger parent recomposition").performClick()
+        repeat(5) {
+            composeTestRule.onNodeWithText("Trigger parent recomposition").performClick()
+        }
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("Parent recompositions: 1").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Parent recompositions: 5").assertIsDisplayed()
+        composeTestRule.onAllNodesWithTag("inlineRecompCount")
+            .assertAll(hasText("Recompositions: 1"))
+    }
+
+    @Test
+    fun parentRecompositionDoesNotRecomposeRememberedLambdaChildren() {
+        composeTestRule.setContent {
+            MaterialTheme {
+                RememberedLambdaDemo()
+            }
+        }
+
+        repeat(5) {
+            composeTestRule.onNodeWithText("Trigger parent recomposition").performClick()
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText("Parent recompositions: 5").assertIsDisplayed()
+        composeTestRule.onAllNodesWithTag("rememberedRecompCount")
+            .assertAll(hasText("Recompositions: 1"))
     }
 
     @Test

@@ -15,11 +15,15 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
-// GOOD: remember(index) caches the lambda keyed on `index`. As long as `index` does not
-// change, the same function object is reused across parent recompositions. StableActionButton
-// receives an equal lambda reference and Compose can safely skip recomposing it.
+// "REMEMBERED" tab. remember(index) explicitly caches the lambda. This was the classic fix for
+// the inline pattern on the other tab — but under Strong Skipping the compiler already
+// memoizes that inline lambda, so this is now redundant for skippability: both tabs behave
+// identically and the child counters stay at 1 on a parent recomposition. Explicit remember is
+// still the right tool when a lambda captures a value whose identity changes every
+// recomposition (which auto-memoization would re-key on).
 @Composable
 fun RememberedLambdaDemo(modifier: Modifier = Modifier) {
     var selectedIndex by remember { mutableIntStateOf(0) }
@@ -47,10 +51,9 @@ fun RememberedLambdaDemo(modifier: Modifier = Modifier) {
         )
 
         repeat(4) { index ->
-            // remember(index) stores the lambda in the composition keyed on `index`.
-            // Because `index` is a constant loop position, the same lambda object is
-            // returned on every subsequent recomposition of the parent — no new allocation.
-            // StableActionButton receives an equal reference and Compose skips its recomposition.
+            // remember(index) stores the lambda in the composition keyed on `index`, so the
+            // same instance is reused across parent recompositions. StableActionButton skips —
+            // the same outcome the compiler now gives the inline tab automatically.
             val onClick = remember(index) { { selectedIndex = index } }
             StableActionButton(
                 label = "Item ${index + 1}",
@@ -77,6 +80,7 @@ private fun StableActionButton(
                 text = "Recompositions: $recompCount",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.testTag("rememberedRecompCount"),
             )
             Button(
                 onClick = onClick,

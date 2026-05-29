@@ -39,7 +39,7 @@ class PerfNavHostTest {
         composeTestRule.onNodeWithText("Recomposition & Stability").performClick()
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("Trigger parent recomposition (count: 0)")
+        composeTestRule.onNodeWithText("Trigger parent recomposition")
             .assertIsDisplayed()
     }
 

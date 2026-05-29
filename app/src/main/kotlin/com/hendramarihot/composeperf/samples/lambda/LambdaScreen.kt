@@ -19,6 +19,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,6 +68,16 @@ fun LambdaScreen(
                     )
                 }
             }
+
+            Text(
+                text = "Strong Skipping (default since Kotlin 2.0.20) auto-memoizes lambdas — " +
+                    "including the inline one. Tap \"Trigger parent recomposition\" on either tab: " +
+                    "the child counters stay at 1 because both onClick references are stable. The " +
+                    "manual remember on the right is now redundant for skipping.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(16.dp),
+            )
 
             HorizontalPager(
                 state = pagerState,

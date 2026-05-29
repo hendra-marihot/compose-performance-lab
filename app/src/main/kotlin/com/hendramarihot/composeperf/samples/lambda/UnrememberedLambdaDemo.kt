@@ -15,12 +15,15 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
-// BAD: The inline lambda `{ selectedIndex = index }` is a new function object on every
-// recomposition of UnrememberedLambdaDemo. ActionButton receives a different lambda
-// reference each time its parent recomposes, so Compose cannot skip recomposition of
-// ActionButton even though its visible output has not changed.
+// "INLINE" tab. The lambda `{ selectedIndex = index }` is written inline with no remember.
+// Pre-2024 this allocated a new function object on every parent recomposition and forced
+// ActionButton to recompose. Under Strong Skipping (default since Kotlin 2.0.20) the compiler
+// auto-memoizes this lambda, so ActionButton receives a stable reference and SKIPS — its
+// counter stays at 1 when you trigger a parent recomposition, identical to the "Remembered"
+// tab. Tap "Trigger parent recomposition" and watch the child counters hold at 1.
 @Composable
 fun UnrememberedLambdaDemo(modifier: Modifier = Modifier) {
     var selectedIndex by remember { mutableIntStateOf(0) }
@@ -48,8 +51,10 @@ fun UnrememberedLambdaDemo(modifier: Modifier = Modifier) {
         )
 
         repeat(4) { index ->
-            // Each recomposition of this scope creates a new lambda instance —
-            // ActionButton always sees a "new" onClick and recomposes.
+            // The compiler memoizes this inline lambda (its captures — index and the state
+            // setter — are stable), so ActionButton sees the same onClick across parent
+            // recompositions and skips. Selecting an item still recomposes only the two
+            // affected buttons, in both tabs equally.
             ActionButton(
                 label = "Item ${index + 1}",
                 isSelected = selectedIndex == index,
@@ -75,6 +80,7 @@ private fun ActionButton(
                 text = "Recompositions: $recompCount",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.testTag("inlineRecompCount"),
             )
             Button(
                 onClick = onClick,

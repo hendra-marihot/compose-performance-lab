@@ -31,15 +31,8 @@ fun RecompositionScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val unstableInfo = remember {
-        ContactInfo(name = "Alice Smith", phones = listOf("+1 555-0100", "+1 555-0101"))
-    }
-    val stableInfo = remember {
-        StableContactInfo(name = "Alice Smith", phones = listOf("+1 555-0100", "+1 555-0101"))
-    }
-
-    // A parent-level trigger counter: incrementing this forces the parent to recompose.
-    // The unstable card will follow; the stable card will skip because its input is equal.
+    // Incrementing this forces the scope that reads it to recompose. The "Parent
+    // recompositions" Text below reads it inside the Column, so the cards recompose too.
     var parentTrigger by remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -63,9 +56,9 @@ fun RecompositionScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = "Tap the button to trigger a parent recomposition. " +
-                    "The unstable card recomposes every time. " +
-                    "The stable card skips because its input hasn't changed.",
+                text = "Each tap hands both cards a brand-new instance with identical content. " +
+                    "Under Strong Skipping the unstable class is compared by reference (===), " +
+                    "so it recomposes; the @Immutable class is compared structurally, so it skips.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -74,8 +67,27 @@ fun RecompositionScreen(
                 onClick = { parentTrigger++ },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Trigger parent recomposition (count: $parentTrigger)")
+                Text("Trigger parent recomposition")
             }
+
+            // Reading parentTrigger here subscribes the Column scope, so the cards below are
+            // re-invoked on every tap. Building fresh instances each time is intentional: the
+            // unstable type fails the referential check and recomposes, the @Immutable type
+            // has equal content and is skipped.
+            Text(
+                text = "Parent recompositions: $parentTrigger",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            val unstableInfo = ContactInfo(
+                name = "Alice Smith",
+                phones = listOf("+1 555-0100", "+1 555-0101"),
+            )
+            val stableInfo = StableContactInfo(
+                name = "Alice Smith",
+                phones = listOf("+1 555-0100", "+1 555-0101"),
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

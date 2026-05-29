@@ -11,21 +11,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-// BAD: scrollState.firstVisibleItemIndex is read directly inside the composable scope.
-// Every time the scroll position changes by even one pixel, LazyColumn recomposes the
-// scroll state, which forces this composable to reread firstVisibleItemIndex and recompose —
-// even when the boolean value of "isAtTop" has not changed.
+// BAD: the lambda reads scrollState.firstVisibleItemIndex directly. StatusHeader invokes it
+// during its own composition, so StatusHeader subscribes to the index and recomposes every
+// time it changes — once per item scrolled past — even though the "isAtTop" boolean only flips
+// at the very top of the list.
 @Composable
 fun WithoutDerivedState(modifier: Modifier = Modifier) {
     val scrollState = rememberLazyListState()
 
-    // Reading firstVisibleItemIndex here subscribes this entire composable to every
-    // scroll frame — not just to changes in the boolean result.
-    val isAtTop = scrollState.firstVisibleItemIndex == 0
-
     Column(modifier = modifier.fillMaxSize()) {
         StatusHeader(
-            isAtTop = isAtTop,
+            isAtTop = { scrollState.firstVisibleItemIndex == 0 },
             isOptimized = false,
             modifier = Modifier.fillMaxWidth(),
         )

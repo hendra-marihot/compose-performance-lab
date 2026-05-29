@@ -13,16 +13,24 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
+// isAtTop is a lambda so the scroll-state read happens INSIDE this composable, which is what
+// subscribes it. The "without" demo passes a lambda that reads firstVisibleItemIndex directly
+// (so this header recomposes on every item-index change); the "with" demo passes one that reads
+// a derivedStateOf boolean (so it recomposes only when the result actually flips). The counter
+// therefore reflects the real difference between the two approaches.
 @Composable
 internal fun StatusHeader(
-    isAtTop: Boolean,
+    isAtTop: () -> Boolean,
     isOptimized: Boolean,
     modifier: Modifier = Modifier,
 ) {
     var recompCount by remember { mutableIntStateOf(0) }
     SideEffect { recompCount++ }
+
+    val atTop = isAtTop()
 
     Card(
         modifier = modifier.padding(16.dp),
@@ -45,9 +53,12 @@ internal fun StatusHeader(
                 } else {
                     MaterialTheme.colorScheme.onErrorContainer
                 },
+                modifier = Modifier.testTag(
+                    if (isOptimized) "withDerivedRecompCount" else "withoutDerivedRecompCount",
+                ),
             )
             Text(
-                text = if (isAtTop) "At top of list" else "Scrolled down",
+                text = if (atTop) "At top of list" else "Scrolled down",
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (isOptimized) {
                     MaterialTheme.colorScheme.onPrimaryContainer

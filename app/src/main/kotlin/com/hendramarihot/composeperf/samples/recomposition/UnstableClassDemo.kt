@@ -12,11 +12,13 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
-// BAD: List<String> is an interface with no structural equality guarantee in Compose's
-// stability system. Compose cannot prove the contents won't change between recompositions,
-// so ContactInfo is inferred as Unstable — every parent recomposition invalidates this card.
+// BAD: List<String> is a read-only interface that could be backed by a mutable list, so
+// Compose infers ContactInfo as Unstable. Under Strong Skipping an unstable parameter is
+// compared by reference (===), not by equals — so handing this card a brand-new instance
+// (even with identical content) fails the check and forces it to recompose.
 data class ContactInfo(
     val name: String,
     val phones: List<String>,
@@ -33,6 +35,7 @@ fun UnstableContactCard(info: ContactInfo, modifier: Modifier = Modifier) {
                 text = "Recompositions: $recompCount",
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.testTag("unstableRecompCount"),
             )
             Text(
                 text = info.name,
