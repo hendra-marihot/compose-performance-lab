@@ -162,13 +162,20 @@ Full CI check:
 
 ---
 
-## Related projects
+## Related repositories
 
-<!-- TODO: Add links to your other portfolio repositories here.
-     Example format:
-     - [Repo Name](https://github.com/...) — one-line description of what it demonstrates -->
+This is one piece of a portfolio covering different aspects of senior mobile engineering:
 
----
+| Repository | Focus area |
+|---|---|
+| [compose-newsreader](https://github.com/hendra-marihot/compose-newsreader) | Multi-module Android, Hilt, Room, offline-first |
+| [android-design-system](https://github.com/hendra-marihot/android-design-system) | Compose component library, design tokens |
+| **compose-performance-lab** (this repo) | Compose performance anti-patterns and fixes |
+| [kmp-currency-converter](https://github.com/hendra-marihot/kmp-currency-converter) | Kotlin Multiplatform, shared business logic |
+| [flutter-expense-tracker](https://github.com/hendra-marihot/flutter-expense-tracker) | Clean Architecture, Riverpod, Drift, Material 3 |
+| [flutter-ui-toolkit](https://github.com/hendra-marihot/flutter-ui-toolkit) | Reusable widgets, shimmer, adaptive layouts |
+| [flutter-platform-bridge](https://github.com/hendra-marihot/flutter-platform-bridge) | Platform channels, native interop |
+| [mobile-ci-cd-templates](https://github.com/hendra-marihot/mobile-ci-cd-templates) | CI/CD, release automation, infrastructure |
 
 ## License
 
