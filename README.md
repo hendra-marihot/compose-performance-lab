@@ -1,5 +1,8 @@
 # Compose Performance Lab
 
+[![CI](https://github.com/hendra-marihot/compose-performance-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/hendra-marihot/compose-performance-lab/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 An interactive Android app that demonstrates the four most common Jetpack Compose
 performance mistakes — and their fixes — through side-by-side comparisons with live
 recomposition counters. Each sample isolates a single anti-pattern so the counter
@@ -8,10 +11,7 @@ difference speaks for itself.
 This is a portfolio project. It exists to show that I understand how Compose's
 recomposition and skipping model works at a level deeper than "follow the docs."
 
-<!-- TODO: Replace with a GIF of the Recomposition & Stability screen.
-     Capture: open the app → tap "Recomposition & Stability" → tap "Trigger parent
-     recomposition" 5 times. The unstable counter climbs; the stable counter stays at 1. -->
-![Demo](docs/demo.gif)
+![Recomposition counters: the unstable card recomposes on every parent recomposition, the @Immutable card skips](docs/demo.gif)
 
 ---
 
