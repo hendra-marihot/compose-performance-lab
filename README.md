@@ -3,78 +3,36 @@
 [![CI](https://github.com/hendra-marihot/compose-performance-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/hendra-marihot/compose-performance-lab/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-An interactive Android app that demonstrates the four most common Jetpack Compose
-performance mistakes — and their fixes — through side-by-side comparisons with live
-recomposition counters. Each sample isolates a single anti-pattern so the counter
-difference speaks for itself.
-
-This is a portfolio project. It exists to show that I understand how Compose's
-recomposition and skipping model works at a level deeper than "follow the docs."
+An Android app that shows the four most common Jetpack Compose performance mistakes next to their fixes. Each screen has a bad tab and a good tab with a live recomposition counter. You interact, and the counters show the difference.
 
 ![Recomposition counters: the unstable card recomposes on every parent recomposition, the @Immutable card skips](docs/demo.gif)
 
----
+## The four patterns
 
-## Why these four patterns
-
-Compose performance issues fall into two categories: things the compiler/runtime
-handles automatically, and things it can't. These four sit right on that boundary —
-they're where developers most often assume the framework will optimize for them
-when it won't.
+Compose fixes some things for you and not others. These four sit on that line. They are where developers most often assume the framework will optimize and it does not.
 
 | Sample | Anti-pattern | Fix | What you see |
 |---|---|---|---|
-| **Stability** | `data class` holding `List<T>` — compiler infers Unstable | `@Immutable` annotation | Unstable card recomposes every parent trigger; stable card stays at 1 |
-| **LazyList Keys** | `items(list.size) { index -> }` — positional identity | `items(list, key = { it.id })` | Insert at top: without keys, all counters reset; with keys, only the new item starts at 1 |
-| **derivedStateOf** | Reading `scrollState.firstVisibleItemIndex` directly | `derivedStateOf { ... }` wrapper | Without: header recomposes every scroll frame; with: only on boolean flip |
-| **Lambda references** | Inline `{ doSomething(value) }` — new object per recomposition | `remember(value) { { doSomething(value) } }` | Without: all 4 button cards recompose; with: only the one whose selection changed |
+| **Stability** | `data class` holding `List<T>`, inferred Unstable | `@Immutable` | Unstable card recomposes on every parent trigger. Stable card stays at 1 |
+| **LazyList keys** | `items(list.size) { index -> }`, positional identity | `items(list, key = { it.id })` | Insert at top: without keys every counter resets, with keys only the new item starts at 1 |
+| **derivedStateOf** | Reading `scrollState.firstVisibleItemIndex` directly | `derivedStateOf { ... }` | Without: header recomposes every scroll frame. With: only when the boolean flips |
+| **Lambda references** | Inline `{ doSomething(value) }`, new object per recomposition | `remember(value) { { doSomething(value) } }` | Without: all 4 button cards recompose. With: only the one whose selection changed |
 
-Each sample uses a `HorizontalPager` with tabs so you can switch between the bad and
-good implementations on the same screen. The format was deliberate — two separate
-screens would force the user to remember counter values across navigation. Tabs keep
-both versions a swipe apart.
-
----
+Each screen uses a `HorizontalPager` with tabs, so the bad and good versions are one swipe apart. Separate screens would make you remember counter values across navigation.
 
 ## Technical decisions
 
-**Recomposition counters use `SideEffect`, not a custom mechanism.**
-`SideEffect` fires after every successful recomposition of its enclosing scope. The
-counter is `remember`-ed *inside* the composable being measured, never hoisted to a
-parent. Hoisting would cause the parent to observe counter mutations, triggering
-additional recompositions that aren't part of the anti-pattern — inflating the count
-and breaking the demo's honesty.
+**Counters use `SideEffect`.** `SideEffect` runs after every successful recomposition of its scope. The counter is `remember`-ed inside the composable being measured, never in a parent. Hoisting it would make the parent observe the counter and recompose too, which would inflate the count.
 
-**No ViewModel. No dependency injection.**
-Every sample's state lives in `remember` and `mutableStateOf`. ViewModels and Hilt
-would add layers that have nothing to do with what's being demonstrated — Compose
-runtime behavior. The absence is the point: this app has no business logic, no
-network calls, no persistence. Adding architecture for its own sake would signal
-the opposite of good judgment.
+**No ViewModel, no DI.** State lives in `remember` and `mutableStateOf`. There is no business logic, network or persistence here, so a ViewModel or Hilt would add nothing to the demonstration.
 
-**Macrobenchmark suite included, not as proof of performance, but of practice.**
-The `:macrobenchmark` module contains frame-timing benchmarks for the recomposition
-and scroll samples, plus a baseline profile generator that walks all four samples.
-The benchmarks use `CompilationMode.Partial()` and `StartupMode.WARM` — the
-configuration you'd use in a real CI pipeline. I included them because knowing *how*
-to measure is as important as knowing *what* to optimize, and setting up macrobenchmarks
-correctly (UiAutomator selectors, emulator suppression, benchmark build types) is
-non-trivial.
+**A Macrobenchmark module.** `:macrobenchmark` has frame-timing benchmarks for the recomposition and scroll samples, plus a baseline profile generator that walks all four screens. The benchmarks use `CompilationMode.Partial()` and `StartupMode.WARM`, the setup you would use in CI. Knowing how to measure matters as much as knowing what to fix.
 
-**`runtime-tracing` is a debug-only dependency.**
-The app includes `androidx.compose.runtime:runtime-tracing` scoped to `debugImplementation`
-so Perfetto system traces capture Compose-level function names. This is the same
-setup I'd use to diagnose recomposition issues in a real app — it's here because
-it belongs in the workflow, not because it changes runtime behavior.
+**`runtime-tracing` in debug builds.** `androidx.compose.runtime:runtime-tracing` is a `debugImplementation` dependency, so Perfetto traces show Compose function names. It is the same setup I use to diagnose recomposition in real apps.
 
-**Type-safe navigation with `@Serializable` routes.**
-Routes are `@Serializable data object` declarations — no string-based routing.
-This is the Navigation 2.8+ pattern that catches route typos at compile time
-rather than at runtime.
+**Type-safe navigation.** Routes are `@Serializable data object` declarations. No strings, so route typos fail at compile time.
 
----
-
-## Architecture
+## Structure
 
 ```
 compose-performance-lab/
@@ -87,7 +45,7 @@ compose-performance-lab/
 │           ├── recomposition/        # Stability: @Immutable vs unstable data class
 │           ├── lazylist/             # Keys: positional vs identity-based
 │           ├── derivedstate/         # derivedStateOf vs raw state read
-│           └── lambda/              # remember(key) lambda vs inline allocation
+│           └── lambda/               # remember(key) lambda vs inline allocation
 │
 └── macrobenchmark/                   # Benchmark module (benchmark build type only)
     └── src/main/kotlin/.../
@@ -97,61 +55,29 @@ compose-performance-lab/
         └── Constants.kt
 ```
 
-Each sample follows a consistent pattern: a `Screen.kt` container (Scaffold + HorizontalPager +
-TabRow), a `Without*.kt` file (anti-pattern), and a `With*.kt` file (fix). When the
-bad and good demos share a data class or composable, it lives in its own file — not
-buried inside one consumer.
+Each sample has a `Screen.kt` container with the pager and tabs, a `Without*.kt` file for the anti-pattern, and a `With*.kt` file for the fix. Shared data classes and composables live in their own files.
 
-The app has no layers beyond what you see. `MainActivity` sets up `MaterialTheme` and
-mounts `PerfNavHost`. There is no repository layer, no use-case layer, no module
-dependency graph to trace. That's not laziness — a demo app with architecture
-layers it doesn't need would be a worse portfolio signal than one without them.
+There are no layers beyond this. `MainActivity` sets up `MaterialTheme` and mounts `PerfNavHost`. A demo app with layers it does not need would be a worse signal than one without them.
 
----
+## Tests and CI
 
-## Testing and CI
+- **UI tests** (`androidTest/`): 5 classes covering navigation to every screen, tab rendering, taps and counter increments. They use `createComposeRule()`.
+- **Unit tests** (`test/`): property and equality tests for the shared `KeyedItem` and `ContactInfo` classes.
+- **Benchmark compilation:** the benchmark module only has a `benchmark` build type. CI compiles it with `:macrobenchmark:compileBenchmarkKotlin` to catch breakage without a device.
 
-**UI tests** (`androidTest/`): 5 test classes covering navigation to every screen,
-tab rendering, and user interactions (button taps, counter increments). Uses
-Compose's `createComposeRule()` test harness.
+CI runs `assembleDebug`, `testDebugUnitTest`, `lintDebug` and the benchmark compilation in one job. Lint and test reports are uploaded as artifacts. Concurrency groups cancel stale runs on the same branch.
 
-**Unit tests** (`test/`): Data class property and equality tests for `KeyedItem` and
-`ContactInfo` — the shared types used across samples.
+## Out of scope
 
-**Macrobenchmark compilation**: The benchmark module only has a `benchmark` build type
-(no debug variant). CI compiles it with `:macrobenchmark:compileBenchmarkKotlin` to
-catch breakage without needing a physical device.
+- **Compose compiler reports.** The stability report shows what the counters already show. Adding it would turn an interactive demo into a tooling showcase.
+- **Strong skipping comparison.** Kotlin 2.0 changed stability inference. Comparing compiler versions would complicate the story.
+- **Embedding in a real app.** The patterns are isolated so each count has one cause.
+- **Published benchmark numbers.** Frame times depend on device, emulator config and thermal state. The repo ships the tooling, not numbers from an uncontrolled environment.
 
-**CI pipeline** (GitHub Actions): A single job runs `assembleDebug`, `testDebugUnitTest`,
-`lintDebug`, and the benchmark compilation. Lint and test reports are uploaded as
-artifacts. The workflow uses concurrency groups to cancel in-progress runs on the
-same branch.
-
----
-
-## Non-goals
-
-These were considered and intentionally excluded:
-
-- **Compose compiler metrics/reports** — The stability report would show the same
-  information the counters already demonstrate visually. Adding it would shift the
-  app from "interactive demo" to "tooling showcase," which is a different project.
-- **Strong skipping mode comparison** — Kotlin 2.0+ changed how the compiler handles
-  stability inference. A comparison would be interesting but adds a compiler-version
-  dimension that complicates the narrative.
-- **Real-world app integration** — These patterns are isolated on purpose. Embedding
-  them in a larger app would make it harder to attribute recomposition counts to a
-  single cause.
-- **Published benchmark numbers** — Frame timing results vary by device, emulator
-  config, and thermal state. The infrastructure to measure is included; specific
-  numbers would be misleading without a controlled environment.
-
----
-
-## Running it
+## Run it
 
 ```bash
-./gradlew :app:installDebug    # Install on a connected device or emulator (API 26+)
+./gradlew :app:installDebug    # device or emulator, API 26+
 ```
 
 Full CI check:
@@ -160,13 +86,11 @@ Full CI check:
 ./gradlew assembleDebug testDebugUnitTest lintDebug :macrobenchmark:compileBenchmarkKotlin
 ```
 
----
-
 ## Related repositories
 
-This is one piece of a portfolio covering different aspects of senior mobile engineering:
+Each repo in this set covers one area of mobile engineering.
 
-| Repository | Focus area |
+| Repository | Focus |
 |---|---|
 | [compose-newsreader](https://github.com/hendra-marihot/compose-newsreader) | Multi-module Android, Hilt, Room, offline-first |
 | [android-design-system](https://github.com/hendra-marihot/android-design-system) | Compose component library, design tokens |
@@ -175,22 +99,8 @@ This is one piece of a portfolio covering different aspects of senior mobile eng
 | [flutter-expense-tracker](https://github.com/hendra-marihot/flutter-expense-tracker) | Clean Architecture, Riverpod, Drift, Material 3 |
 | [flutter-ui-toolkit](https://github.com/hendra-marihot/flutter-ui-toolkit) | Reusable widgets, shimmer, adaptive layouts |
 | [flutter-platform-bridge](https://github.com/hendra-marihot/flutter-platform-bridge) | Platform channels, native interop |
-| [mobile-ci-cd-templates](https://github.com/hendra-marihot/mobile-ci-cd-templates) | CI/CD, release automation, infrastructure |
+| [mobile-ci-cd-templates](https://github.com/hendra-marihot/mobile-ci-cd-templates) | CI/CD, release automation |
 
 ## License
 
-```
-Copyright 2026 Hendra Marihot
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
+Copyright 2026 Hendra Marihot. Licensed under the [Apache License 2.0](LICENSE).
