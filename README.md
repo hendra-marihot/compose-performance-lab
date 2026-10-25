@@ -86,6 +86,8 @@ Full CI check:
 ./gradlew assembleDebug testDebugUnitTest lintDebug :macrobenchmark:compileBenchmarkKotlin
 ```
 
+Needs JDK 17. Builds with Gradle 9.7, AGP 9.3 and Kotlin 2.4. Targets Android API 26 to 36 and compiles against API 37.
+
 ## Related repositories
 
 Each repo in this set covers one area of mobile engineering.
