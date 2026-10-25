@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val javaVersion = JavaVersion.toVersion(libs.versions.java.get())
+
 android {
     namespace = "com.hendramarihot.composeperf"
     compileSdk = libs.versions.compileSdk.get().toInt()
@@ -24,8 +26,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = javaVersion
+        targetCompatibility = javaVersion
     }
     buildFeatures {
         compose = true
@@ -35,7 +37,7 @@ android {
 // Kotlin compilation comes from AGP's built-in Kotlin support. The toolchain pins
 // the JDK so a newer local JDK cannot leak APIs into Java 17 bytecode.
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(javaVersion.majorVersion.toInt())
 }
 
 dependencies {

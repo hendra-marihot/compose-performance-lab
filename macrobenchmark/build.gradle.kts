@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.test)
 }
 
+val javaVersion = JavaVersion.toVersion(libs.versions.java.get())
+
 android {
     namespace = "com.hendramarihot.composeperf.benchmark"
     compileSdk = libs.versions.compileSdk.get().toInt()
@@ -14,8 +16,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = javaVersion
+        targetCompatibility = javaVersion
     }
 
     buildTypes {
@@ -31,7 +33,7 @@ android {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(javaVersion.majorVersion.toInt())
 }
 
 dependencies {

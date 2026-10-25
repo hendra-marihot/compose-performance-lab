@@ -1,9 +1,11 @@
 [versions]
 # Android SDK
 compileSdk = "37"
+# targetSdk stays one behind compileSdk until the API 37 behavior changes are reviewed. Lint reports OldTargetApi for this on purpose.
 targetSdk = "36"
 
 # Build tools
+java = "17"
 agp = "9.3.2"
 kotlin = "2.4.21"
 
