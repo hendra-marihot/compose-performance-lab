@@ -32,6 +32,7 @@ android {
     experimentalProperties["android.experimental.self-instrumenting"] = true
 }
 
+// Pin the JDK that runs the compilers so builds match across machines and CI.
 kotlin {
     jvmToolchain(javaVersion.majorVersion.toInt())
 }

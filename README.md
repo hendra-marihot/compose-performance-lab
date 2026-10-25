@@ -86,7 +86,7 @@ Full CI check:
 ./gradlew assembleDebug testDebugUnitTest lintDebug :macrobenchmark:compileBenchmarkKotlin
 ```
 
-Builds with Gradle 9.7, AGP 9.3 and Kotlin 2.4 on JDK 17. The toolchain resolver downloads JDK 17 when it is missing. compileSdk 37 needs `platforms;android-37.0`, which AGP installs when the SDK licenses are accepted. Targets Android API 26 to 36.
+Builds with Gradle 9.7, AGP 9.3 and Kotlin 2.4. Needs a JDK 17 or newer to run Gradle and the API 37 platform (`platforms;android-37.0`). If the local JDK is newer than 17, the toolchain resolver downloads JDK 17 for compilation. AGP installs the platform when the SDK licenses are accepted. Targets Android API 26 to 36.
 
 ## Related repositories
 
