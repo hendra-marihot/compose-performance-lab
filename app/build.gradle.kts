@@ -1,17 +1,18 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
 }
 
+val javaVersion = JavaVersion.toVersion(libs.versions.java.get())
+
 android {
     namespace = "com.hendramarihot.composeperf"
-    compileSdk = 35
+    compileSdk = libs.versions.compileSdk.get().toInt()
     defaultConfig {
         applicationId = "com.hendramarihot.composeperf"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -25,15 +26,17 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlinOptions {
-        jvmTarget = "17"
+        sourceCompatibility = javaVersion
+        targetCompatibility = javaVersion
     }
     buildFeatures {
         compose = true
     }
+}
+
+// Pin the JDK that runs the compilers so builds match across machines and CI.
+kotlin {
+    jvmToolchain(javaVersion.majorVersion.toInt())
 }
 
 dependencies {
